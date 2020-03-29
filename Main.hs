@@ -1,12 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE DeriveGeneric #-}
-module Main
-  ( main
-  , getRules
-  , URL(..)
-  , Rule(..)
-  ) where
+module Main ( main ) where
 
 --------------------------------------------------------------------------------
 -- Dependencies
