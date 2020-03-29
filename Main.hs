@@ -151,11 +151,9 @@ maybeBlockURL date Rule{urls, allowed} =
 -- | Read and parse the rules.json file.
 -- TODO(wpcarro): Properly handle errors for file not found.
 -- TODO(wpcarro): Properly handle errors for parse failures.
--- TODO(wpcarro): How can we resolve the $HOME directory when this is run as
--- root?
 getRules :: IO [Rule]
 getRules = do
-  contents <- LazyByteString.readFile "/home/wpcarro/.config/url-blocker/rules.json"
+  contents <- LazyByteString.readFile "/etc/url-blocker/rules.json"
   let payload = Aeson.eitherDecode contents
   pure $ Either.fromRight [] payload
 

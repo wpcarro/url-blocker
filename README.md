@@ -4,11 +4,11 @@
 them.
 
 Let's say that you don't want to visit Twitter during the work week. Create the
-file `~/.config/url-blocker/rules.json` with the following contents and
+file `/etc/url-blocker/rules.json` with the following contents and
 `url-blocker` will take care of the rest.
 
 ```json
-# ~/.config/url-blocker/rules.json
+# /etc/url-blocker/rules.json
 [
   {
     "urls": [
@@ -35,13 +35,32 @@ file `~/.config/url-blocker/rules.json` with the following contents and
 
 ## Installation
 
+This project builds with the latest version of `nixpkgs-unstable`,
+(i.e. `https://github.com/NixOS/nixpkgs-channels` at commit
+`ae6bdcc53584aaf20211ce1814bea97ece08a248`).
+
 ```shell
-$ nix-env -iA 'briefcase.tools.url-blocker'
+$ nix-build .
 ```
 
 ## How does it work?
 
 `systemd` is intended to run `url-blocker` once every minute. `url-blocker` will
 read `/etc/hosts` and map the URLs defined in `rules.json` to `127.0.0.1` when
-you want them blocked. Because `systemd` run once every minute, `/etc/hosts`
+you want them blocked. Because `systemd` runs once every minute, `/etc/hosts`
 should be current to the minute as well.
+
+I have not setup the `systemd` units, but I encourage anyone who may be
+interested in this to create a pull request.
+
+## Shortcomings
+
+I would like to move the `/etc/url-blocker/rules.json` file to
+`~/.config/url-blocker/rules.json`. I currently do not know if it is possible to
+define user-specific rules. If Linux permits this, `systemd` can run this as a
+`--user` module, which I would prefer.
+
+I read that some people have successfully created user-specific rules by setting
+the `HOSTALIAS` environment variable to some file (e.g. `~/hosts`). I could not
+get this to work on my end, but if other people can successfully use this, I
+would prefer supporting that instead.

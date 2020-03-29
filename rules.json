@@ -7,16 +7,21 @@
       "www.twitter.com",
       "youtube.com",
       "www.youtube.com",
-      "instagram.com",
-      "www.instagram.com"
     ],
     "allowed": []
   },
   {
     "urls": [
-      "chat.googleplex.com"
+      "instagram.com",
+      "www.instagram.com"
     ],
     "allowed": [
+      {
+        "day": "Saturday",
+        "timeslots": [
+          "18:35-18:39"
+        ]
+      },
       {
         "day": "Sunday",
         "timeslots": [
