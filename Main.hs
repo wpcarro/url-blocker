@@ -171,7 +171,7 @@ urlBlockerHeader =
 -- | Removes all entries that url-blocker may have added to /etc/hosts.
 removeURLBlockerEntries :: Text -> Text
 removeURLBlockerEntries etcHosts =
-  case Text.breakOn urlBlockerHeader etcHosts of
+  case Text.breakOn ("\n" <> urlBlockerHeader) etcHosts of
     (etcHosts', _) -> etcHosts'
 
 -- | Appends the newly created `entries` to `etcHosts`.
