@@ -124,3 +124,12 @@ I read that some people have successfully created user-specific rules by setting
 the `HOSTALIAS` environment variable to some file (e.g. `~/hosts`). I could not
 get this to work on my end, but if other people can successfully use this, I
 would prefer supporting that instead.
+
+## Considerations
+
+When I use this, I'm often adding duplicate entries in the form of
+`website.com`, `www.website.com`. It might be nice if `url-blocker`
+automatically prefixed non `www.` entries with `www.`. However, I am unsure how
+I would like to handle websites that are not prefixed with `www.`, so for now
+I'm keeping any implicit behavior explicit until I have stronger opinions about
+this.
