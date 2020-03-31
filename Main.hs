@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Main ( main ) where
 
 --------------------------------------------------------------------------------
@@ -19,10 +20,13 @@ import qualified Data.Text as Text
 import qualified Data.Text.IO as TextIO
 import qualified Data.Text.Read as TextRead
 import qualified Data.List as List
+import qualified Data.HashSet as HashSet
 
 import GHC.Generics
 import Data.Aeson ((.:))
 import Data.Text (Text)
+import Data.HashSet (HashSet)
+import Data.Hashable (Hashable)
 
 --------------------------------------------------------------------------------
 -- Types
@@ -32,14 +36,15 @@ newtype URL = URL { getURL :: Text } deriving (Show, Eq, Generic)
 
 newtype IPAddress = IPAddress { getIPAddress :: Text } deriving (Show)
 
-newtype Domain = Domain { getDomain :: Text } deriving (Show)
+newtype Domain = Domain { getDomain :: Text }
+  deriving (Show, Eq, Hashable)
 
 newtype Hour = Hour { getHour :: Int } deriving (Show, Eq, Generic)
 
 newtype Minute = Minute { getMinute :: Int } deriving (Show, Eq, Generic)
 
 data EtcHostsEntry = EtcHostsEntry { ip :: IPAddress
-                                   , domains :: [Domain]
+                                   , domains :: HashSet Domain
                                    } deriving (Show)
 
 -- | Write these in terms of your system's local time (i.e. `date`).
@@ -133,9 +138,17 @@ shouldBeBlocked date allowances = do
     _  -> True
 
 -- | Maps an EtcHostsEntry to the line of text url-blocker will append to /etc/hosts.
-serializeEtcHostEntry :: EtcHostsEntry -> Text
-serializeEtcHostEntry EtcHostsEntry{ip, domains} =
-  (getIPAddress ip) <> "\t" <> (Text.unwords $ fmap getDomain domains)
+maybeSerializeEtcHostEntry :: EtcHostsEntry -> Maybe Text
+maybeSerializeEtcHostEntry EtcHostsEntry{ip, domains} =
+  if HashSet.null domains then
+    Nothing
+  else
+    Just $ (getIPAddress ip) <> "\t" <> domains'
+  where
+    domains' = domains
+               |> HashSet.toList
+               |> fmap getDomain
+               |> Text.unwords
 
 -- | Create an EtcHostsEntry mapping the URLs in `rule` to 127.0.0.1 if the
 -- URLs should be blocked.
@@ -143,10 +156,15 @@ maybeBlockURL :: LocalTime.LocalTime -> Rule -> Maybe EtcHostsEntry
 maybeBlockURL date Rule{urls, allowed} =
   if shouldBeBlocked date allowed then
     Just $ EtcHostsEntry { ip = IPAddress "127.0.0.1"
-                        , domains = fmap (Domain . getURL) urls
-                        }
+                         , domains = domains'
+                         }
   else
     Nothing
+  where
+    domains' = urls
+               |> fmap getURL
+               |> fmap Domain
+               |> HashSet.fromList
 
 -- | Read and parse the rules.json file.
 -- TODO(wpcarro): Properly handle errors for file not found.
@@ -194,7 +212,8 @@ main = do
       entries = rules
                 |> fmap (maybeBlockURL date)
                 |> Maybe.catMaybes
-                |> fmap serializeEtcHostEntry
+                |> fmap maybeSerializeEtcHostEntry
+                |> Maybe.catMaybes
                 |> Text.unlines
   existingEtcHosts <- TextIO.readFile "/etc/hosts"
   existingEtcHosts
