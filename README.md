@@ -33,15 +33,35 @@ file `/etc/url-blocker/rules.json` with the following contents and
 ]
 ```
 
-## Installation
+## Usage
 
 This project builds with the latest version of `nixpkgs-unstable`,
 (i.e. `https://github.com/NixOS/nixpkgs-channels` at commit
 `ae6bdcc53584aaf20211ce1814bea97ece08a248`).
 
+1. Create and populate the `/etc/url-blocker/rules.json` file:
+
 ```shell
-$ nix-build .
+$ sudo vi /etc/url-blocker/rules.json
 ```
+
+2. Ensure that Nix can resolve `<unstable>`. If you do not have this set up, the
+   following is what I use:
+
+```shell
+$ git clone git@github.com:NixOS/nixpkgs-channels ~/nixpkgs-channels
+$ export NIX_PATH=unstable="$(realpath ~/nixpkgs-channels)"
+```
+
+3. Build and run `url-blocker:
+
+```shell
+$ nix-build
+$ sudo ./result
+```
+
+This is not my ideal workflow. See the Shortcomings section for what I would
+prefer but have not setup.
 
 ## How does it work?
 
@@ -52,6 +72,46 @@ should be current to the minute as well.
 
 I have not setup the `systemd` units, but I encourage anyone who may be
 interested in this to create a pull request.
+
+If an example is worth 1,000 words, here is an example. The following
+`rules.json` file...
+
+```json
+# /etc/url-blocker/rules.json
+[
+  {
+    "urls": [
+      "facebook.com",
+      "www.facebook.com",
+      "instagram.com",
+      "www.instagram.com",
+      "twitter.com",
+      "www.twitter.com",
+      "youtube.com",
+      "www.youtube.com",
+      "wsj.com",
+      "www.wsj.com",
+      "nytimes.com",
+      "www.nytimes.com"
+    ],
+    "allowed": []
+  }
+]
+```
+
+...will create the following `/etc/hosts` file:
+
+```
+127.0.0.1	localhost
+
+################################################################################
+# Added by url-blocker.
+#
+# Warning: url-blocker will remove anything that you add beneath this header.
+################################################################################
+
+127.0.0.1	twitter.com youtube.com www.wsj.com www.twitter.com www.youtube.com nytimes.com www.instagram.com wsj.com facebook.com instagram.com www.nytimes.com www.facebook.com
+```
 
 ## Shortcomings
 
